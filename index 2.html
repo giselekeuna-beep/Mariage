@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liste des invités du mariage</title>
+<style>
+:root{--bg:#faf6f1;--card:#fff;--ink:#2d2622;--mute:#7a6f68;--line:#e8dfd6;--accent:#b5654a;--ok:#4f7a5a;--no:#a14a4a;--maybe:#b08a3e;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1916;--card:#282320;--ink:#f2ebe4;--mute:#a89c93;--line:#3a332e;--accent:#d98a6e;--ok:#7fb48b;--no:#d17d7d;--maybe:#d6b366}}
+:root[data-theme="dark"]{--bg:#1d1916;--card:#282320;--ink:#f2ebe4;--mute:#a89c93;--line:#3a332e;--accent:#d98a6e;--ok:#7fb48b;--no:#d17d7d;--maybe:#d6b366}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 Georgia,'Times New Roman',serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+h1{font-weight:400;font-size:28px;margin:8px 0 2px;text-align:center}
+h2{font-weight:400;font-size:17px;margin:0 0 10px}
+.sub{text-align:center;color:var(--mute);font:14px system-ui,sans-serif;margin-bottom:16px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 4px;text-align:center}
+.stat b{display:block;font-size:22px;font-weight:400}
+.stat span{font:11px system-ui,sans-serif;color:var(--mute);text-transform:uppercase;letter-spacing:.04em}
+.box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px}
+.row{display:flex;gap:8px;margin-bottom:8px}
+input,select,button{font:16px system-ui,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;min-width:0}
+input[type=text],input[type=search]{flex:1}
+input[type=number]{width:72px}
+button{cursor:pointer}
+.primary{background:var(--accent);color:#fff;border-color:var(--accent);width:100%}
+.tools{display:flex;gap:8px;margin-bottom:12px}
+.tools input{flex:1}
+.q{display:grid;grid-template-columns:90px 1fr 48px;gap:8px;align-items:center;font:14px system-ui,sans-serif;margin-bottom:6px}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.bar i.full{background:var(--no)}
+.q em{font-style:normal;text-align:right;color:var(--mute)}
+.q.common{border-top:1px solid var(--line);padding-top:8px;margin-top:8px;font-weight:600}
+.guest{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--maybe);border-radius:10px;padding:12px;margin-bottom:8px}
+.guest.confirmed{border-left-color:var(--ok)}.guest.declined{border-left-color:var(--no)}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.name{font-size:18px}
+.meta{font:13px system-ui,sans-serif;color:var(--mute);margin-top:2px}
+.act{display:flex;gap:8px;margin-top:8px}
+.act select{flex:1;padding:8px}
+.act button{padding:8px 12px;color:var(--no)}
+.empty,.msg{text-align:center;color:var(--mute);font:14px system-ui,sans-serif;padding:24px 8px}
+.link{background:none;border:none;color:var(--accent);padding:4px;font-size:14px}
+summary{cursor:pointer;font:14px system-ui,sans-serif;color:var(--accent)}
+.set{margin-top:10px}
+.set label{display:block;font:13px system-ui,sans-serif;color:var(--mute);margin:8px 0 4px}
+.set input{width:100%}
+</style>
+</head>
+<body>
+<main>
+<h1>Liste des invités du mariage</h1>
+<div class="sub">Chacun ajoute ses invités ici</div>
+
+<div class="stats">
+<div class="stat"><b id="sT">0</b><span>Invités</span></div>
+<div class="stat"><b id="sC">0</b><span>Oui</span></div>
+<div class="stat"><b id="sP">0</b><span>En attente</span></div>
+<div class="stat"><b id="sD">0</b><span>Non</span></div>
+</div>
+
+<div class="box">
+<h2>Places utilisées (100 au total)</h2>
+<div id="quota"></div>
+</div>
+
+<div class="box">
+<h2>Ajouter un invité</h2>
+<div class="row"><input type="text" id="name" placeholder="Nom de l'invité ou de la famille" autocomplete="off"><input type="number" id="size" value="1" min="1" max="20" aria-label="Nombre de personnes"></div>
+<div class="row"><select id="by" style="flex:1"></select></div>
+<div class="row"><input type="text" id="note" placeholder="Note (facultatif)"></div>
+<button class="primary" id="add">Ajouter à la liste</button>
+<div id="err" class="msg" style="padding:8px 0 0"></div>
+</div>
+
+<div class="tools"><input type="search" id="q" placeholder="Rechercher"><select id="f"><option value="">Tous</option><option value="Pending">En attente</option><option value="Confirmed">Confirmés</option><option value="Declined">Déclinés</option></select></div>
+<div id="list"><div class="msg">Chargement…</div></div>
+<div style="text-align:center"><button class="link" id="csv" hidden>Télécharger en CSV</button></div>
+
+<details class="box" id="settings">
+<summary>Réglages (prénoms)</summary>
+<div class="set">
+<label>Prénoms (pour les quotas de 10 invités)</label>
+<div id="names"></div>
+<button class="primary" id="save" style="margin-top:12px">Enregistrer</button>
+<div id="serr" class="msg" style="padding:8px 0 0"></div>
+</div>
+</details>
+</main>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* ====== COLLEZ ICI LA CONFIGURATION FIREBASE (voir LISEZMOI.md, étape 2) ====== */
+var FIREBASE_CONFIG={
+  apiKey:"AIzaSyAiEIeKJVDxn6OtgSWSiDs4ORsEdcz1CVg",
+  authDomain:"liste-des-invites.firebaseapp.com",
+  projectId:"liste-des-invites",
+  storageBucket:"liste-des-invites.firebasestorage.app",
+  messagingSenderId:"134999861301",
+  appId:"1:134999861301:web:054b4f64c5e39158dee97c"
+};
+/* ================================================================================ */
+(function(){
+var PER=10,COMMON=40,N=6;
+var DEF=['Moi','Papa','Maman','Sœur 1','Sœur 2','Sœur 3'];
+var $=function(i){return document.getElementById(i)};
+var guests=[],cfg={names:DEF.slice()},col=null,cfgDoc=null;
+var ST={Pending:'En attente',Confirmed:'Confirmé',Declined:'Décliné'};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function nm(i){return i===N?'Communs':((cfg.names&&cfg.names[i])||DEF[i])}
+function cap(i){return i===N?COMMON:PER}
+function by(i){return i===N?'Invité commun':'Ajouté par '+nm(i)}
+function usage(list){
+var u=[0,0,0,0,0,0,0];
+list.forEach(function(g){var o=+g.owner||0;if(o<0||o>N)o=0;u[o]+=(+g.size||1)});
+return u;
+}
+function renderQuota(){
+var u=usage(guests),b=$('quota');b.textContent='';
+for(var i=0;i<=N;i++){
+var c=cap(i),used=Math.min(u[i],c),row=el('div',i===N?'q common':'q');
+row.appendChild(el('span',null,nm(i)));
+var bar=el('div','bar'),f=el('i',u[i]>=c?'full':'');f.style.width=(used/c*100)+'%';bar.appendChild(f);row.appendChild(bar);
+row.appendChild(el('em',null,u[i]+'/'+c));b.appendChild(row);
+}
+}
+function renderSel(){
+var s=$('by'),cur=s.value;s.textContent='';
+for(var i=0;i<=N;i++){var o=el('option',null,i===N?'Invités communs ('+COMMON+' places)':nm(i));o.value=i;s.appendChild(o)}
+var saved='';try{saved=localStorage.getItem('by')||''}catch(e){}
+s.value=cur||saved||'0';
+}
+function render(){
+var n=0,c=0,p=0,d=0;
+guests.forEach(function(g){var s=+g.size||1;n+=s;if(g.status==='Confirmed')c+=s;else if(g.status==='Declined')d+=s;else p+=s});
+$('sT').textContent=n;$('sC').textContent=c;$('sP').textContent=p;$('sD').textContent=d;
+renderQuota();
+var q=$('q').value.trim().toLowerCase(),f=$('f').value,box=$('list');
+box.textContent='';
+var shown=guests.filter(function(g){
+return (!f||(g.status||'Pending')===f)&&(!q||((g.name||'')+' '+nm(+g.owner||0)).toLowerCase().indexOf(q)>-1)});
+if(!shown.length){box.appendChild(el('div','empty',guests.length?'Aucun invité ne correspond.':"Pas encore d'invités. Ajoutez le premier ci-dessus !"));return}
+shown.forEach(function(g){
+var st=g.status||'Pending';
+var card=el('div','guest '+st.toLowerCase());
+var top=el('div','top');top.appendChild(el('span','name',g.name));
+top.appendChild(el('span','meta',(g.size||1)+(+g.size>1?' personnes':' personne')));card.appendChild(top);
+card.appendChild(el('div','meta',[by(+g.owner||0),g.note].filter(Boolean).join(' · ')));
+var a=el('div','act'),s=el('select');
+Object.keys(ST).forEach(function(k){var op=el('option',null,ST[k]);op.value=k;if(k===st)op.selected=true;s.appendChild(op)});
+s.onchange=function(){col.doc(g.id).update({status:s.value}).catch(fail)};
+var x=el('button',null,'Supprimer');
+x.onclick=function(){if(confirm('Supprimer '+g.name+' ?'))col.doc(g.id).delete().catch(fail)};
+a.appendChild(s);a.appendChild(x);card.appendChild(a);box.appendChild(card)});
+}
+function fail(e){$('err').textContent=(e&&e.code==='permission-denied')?"Action refusée par la base de données. Vérifiez les règles Firestore (LISEZMOI.md, étape 4).":'Une erreur est survenue. Réessayez.'}
+function fillSettings(){
+if($('settings').open)return;
+var b=$('names');b.textContent='';
+for(var i=0;i<N;i++){var inp=el('input');inp.type='text';inp.value=nm(i);inp.style.marginBottom='6px';b.appendChild(inp)}
+}
+$('q').oninput=render;$('f').onchange=render;
+$('by').onchange=function(){try{localStorage.setItem('by',$('by').value)}catch(e){}};
+$('add').onclick=function(){
+var name=$('name').value.trim();$('err').textContent='';
+if(!name){$('err').textContent='Veuillez saisir un nom.';return}
+if(!col){$('err').textContent="Le partage n'est pas disponible ici.";return}
+var size=Math.max(1,Math.min(20,parseInt($('size').value)||1)),owner=parseInt($('by').value)||0;
+var left=cap(owner)-usage(guests)[owner];
+if(size>left){$('err').textContent=left<=0?(owner===N?'Les '+COMMON+' places communes sont toutes utilisées.':nm(owner)+' a déjà atteint '+PER+' invités.'):'Il ne reste que '+left+' place'+(left>1?'s':'')+' pour '+nm(owner)+'.';return}
+col.add({name:name,size:size,owner:owner,note:$('note').value.trim(),status:'Pending',at:Date.now()})
+.then(function(){$('name').value='';$('note').value='';$('size').value=1;$('name').focus()}).catch(fail)};
+$('save').onclick=function(){
+if(!cfgDoc){$('serr').textContent='Indisponible.';return}
+var names=[].map.call($('names').querySelectorAll('input'),function(i,k){return i.value.trim()||DEF[k]});
+cfgDoc.set({names:names}).then(function(){$('serr').textContent='Enregistré ✓'}).catch(function(e){$('serr').textContent=(e&&e.code==='permission-denied')?'Action refusée. Vérifiez les règles Firestore.':'Erreur, réessayez.'})};
+$('csv').onclick=function(){
+var rows=[['Nom','Personnes','Ajouté par','Statut','Note']].concat(guests.map(function(g){return [g.name,g.size,(+g.owner===N?'Communs':nm(+g.owner||0)),ST[g.status||'Pending'],g.note]}));
+var t=rows.map(function(r){return r.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}).join(',')}).join('\n');
+var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+t],{type:'text/csv;charset=utf-8'}));a.download='invites-mariage.csv';document.body.appendChild(a);a.click();a.remove()};
+renderSel();renderQuota();
+$('csv').hidden=false;
+function boot(){
+if(String(FIREBASE_CONFIG.apiKey).indexOf('COLLEZ')===0){$('list').textContent='';$('list').appendChild(el('div','msg','Configuration Firebase manquante : voir LISEZMOI.md.'));return}
+try{
+firebase.initializeApp(FIREBASE_CONFIG);
+var db=firebase.firestore();
+col=db.collection('guests');cfgDoc=db.doc('config/main');
+cfgDoc.onSnapshot(function(s){
+if(s.exists){var d=s.data();cfg={names:(d.names&&d.names.length===N)?d.names:DEF.slice()}}
+renderSel();fillSettings();render()},function(){});
+col.orderBy('at','asc').onSnapshot(function(s){
+guests=s.docs.map(function(d){var x=d.data();x.id=d.id;return x});render()},
+function(){$('list').textContent='';$('list').appendChild(el('div','msg','Impossible de charger la liste. Vérifiez la configuration et les règles Firestore.'))});
+}catch(e){$('list').textContent='';$('list').appendChild(el('div','msg','Erreur de configuration Firebase.'))}
+}
+boot();
+})();
+</script>
+</body>
+</html>
